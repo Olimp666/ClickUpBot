@@ -8,6 +8,7 @@ using Telegram.Bot.Types;
 using Chinchilla.ClickUp;
 using ClickUpBot.Helpers;
 using Chinchilla.ClickUp.Params;
+using Telegram.Bot.Types.Enums;
 
 namespace ClickUpBot.States
 {
@@ -39,7 +40,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetAuthorizedTeamsAsync();
                 foreach (var team in response.ResponseSuccess.Teams)
                 {
-                    responseMessage += $"{team.Name}\n";
+                    responseMessage += $"`{team.Name}`\n";
                     teams.Add(team.Name, team.Id);
                 }
             }
@@ -50,7 +51,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetTeamSpacesAsync(new ParamsGetTeamSpaces(teamId));
                 foreach (var space in response.ResponseSuccess.Spaces)
                 {
-                    responseMessage += $"{space.Name}\n";
+                    responseMessage += $"`{space.Name}`\n";
                     spaces.Add(space.Name, space.Id);
                 }
             }
@@ -61,7 +62,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetFolderlessListsAsync(new ParamsGetFolderlessLists(spaceId));
                 foreach (var list in response.ResponseSuccess.Lists)
                 {
-                    responseMessage += $"{list.Name}\n";
+                    responseMessage += $"`{list.Name}`\n";
                     lists.Add(list.Name, list.Id);
                 }
             }
@@ -72,7 +73,7 @@ namespace ClickUpBot.States
                 db.SetDefaultProject(update.Message!.From!.Id, teamId, spaceId, listId);
                 finished = true;
             }
-            await bot.SendTextMessageAsync(update.Message!.From!.Id, responseMessage);
+            await bot.SendTextMessageAsync(update.Message!.From!.Id, responseMessage, parseMode: ParseMode.MarkdownV2);
             step++;
         }
     }
