@@ -59,11 +59,12 @@ namespace Chinchilla.ClickUp.Requests
 		/// Constructor of RequestCreateTaskInList
 		/// </summary>
 		/// <param name="name"></param>
-		public RequestCreateTaskInList(string name, string description, long assignees)
+		public RequestCreateTaskInList(string name, string description, long assignees, DateTime dueDate)
 		{
 			Name = name;
 			Description = description;
 			Assignees = new List<long>(){assignees};
+			DueDate = dueDate;
 		}
 
 		#endregion

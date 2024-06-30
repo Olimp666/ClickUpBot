@@ -26,15 +26,14 @@ namespace ClickUpBot.States
 
         MemoryStream docStream = new();
         bool skipDocument = false;
+        long assigneeId;
         string? taskName;
         string? taskDescription;
         string? docName;
-        string? docMimeType;
-        string? taskTeam;
-        string? taskSpace;
-        string? taskList;
+        DateTime dueTime;
 
         string? listId;
+
 
         ResponseModelTask? createdTask;
 
@@ -88,16 +87,7 @@ namespace ClickUpBot.States
                 }
                 if (!skipDocument)
                 {
-                    if (update.Message!.Document == null)
-                    {
-                        await NoDocumentError(userId);
-                        return;
-                    }
-
-                    var doc = update.Message!.Document;
-                    await bot.GetInfoAndDownloadFileAsync(doc.FileId, docStream);
-                    docName = doc.FileName!;
-                    docMimeType = doc.MimeType!;
+                    await ParseAttachment(update);
                 }
 
                 string responseMessage = "Выберите команду\n";
@@ -209,9 +199,35 @@ namespace ClickUpBot.States
                     await SendMessage(userId, "Пользователь не найден");
                     return;
                 }
+                assigneeId = members[update.Message!.Text];
+                KeyboardButton[] buttons = { "Сегодня", "Завтра" };
+                var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
+                await bot.SendTextMessageAsync(userId, "Введите дедлайн для задачи", replyMarkup: markup);
+
+            }
+            if (step == 8)
+            {
+                if (update.Message!.Text == null)
+                {
+                    await NoTextError(userId);
+                    return;
+                }
+                if (update.Message!.Text == "Сегодня")
+                {
+                    dueTime = DateTime.Today;
+                }
+                else if (update.Message!.Text == "Завтра")
+                {
+                    dueTime = DateTime.Today.AddDays(1);
+                }
+                else if (!DateTime.TryParse(update.Message!.Text, out dueTime))
+                {
+                    await SendMessage(userId, "Не удалось распарсить время");
+                    return;
+                }
 
                 var response = await clickUpApi.CreateTaskInListAsync(new ParamsCreateTaskInList(listId),
-                    new RequestCreateTaskInList(taskName, taskDescription, members[update.Message!.Text]));
+                    new RequestCreateTaskInList(taskName, taskDescription, assigneeId, dueTime));
 
                 if (response.ResponseError != null)
                 {
@@ -223,10 +239,44 @@ namespace ClickUpBot.States
                 await clickUpApi.CreateTaskAttachmentAsync(new ParamsCreateTaskAttachment(createdTaskId), docStream, docName);
 
                 createdTask = response.ResponseSuccess;
-                await SendMessage(userId, createdTask.Url);
-
+                await bot.SendTextMessageAsync(userId, createdTask.Url, replyMarkup: new ReplyKeyboardRemove());
+                finished = true;
             }
             step++;
+        }
+        async Task ParseAttachment(Telegram.Bot.Types.Update update)
+        {
+            string fileId = "";
+            switch (update.Message!.Type)
+            {
+                case MessageType.Text:
+                    await NoDocumentError(userId);
+                    return;
+                case MessageType.Photo:
+                    fileId = update.Message!.Photo!.Last().FileId;
+                    docName = $"attachment_{update.Message!.Photo!.Last().FileUniqueId}.jpg";
+                    break;
+                case MessageType.Audio:
+                    fileId = update.Message!.Audio!.FileId;
+                    docName = update.Message!.Audio!.FileName;
+                    break;
+                case MessageType.Video:
+                    fileId = update.Message!.Video!.FileId;
+                    docName = update.Message!.Video!.FileName;
+                    break;
+                case MessageType.Voice:
+                    fileId = update.Message!.Voice!.FileId;
+                    docName = $"attachment_{update.Message!.Voice.FileUniqueId}.mp3";
+                    break;
+                case MessageType.Document:
+                    fileId = update.Message!.Document!.FileId;
+                    docName = update.Message!.Document!.FileName;
+                    break;
+                default:
+                    return;
+            }
+
+            await bot.GetInfoAndDownloadFileAsync(fileId, docStream);
         }
     }
 }
