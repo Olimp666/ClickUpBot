@@ -372,13 +372,13 @@ namespace Chinchilla.ClickUp
 			return result;
 		}
 
-		/// <summary>
-		/// Edit Task informations.
-		/// </summary>
-		/// <param name="paramsEditTask">param object of Edit Task request</param>
-		/// <param name="requestData">RequestEditTask object</param>
-		/// <returns>ResponseGeneric with ResponseSuccess response object</returns>
-		public ResponseGeneric<ResponseModelTask, ResponseError> EditTask(ParamsEditTask paramsEditTask, RequestEditTask requestData)
+        /// <summary>
+        /// Edit Task informations.
+        /// </summary>
+        /// <param name="paramsEditTask">param object of Edit Task request</param>
+        /// <param name="requestData">RequestEditTask object</param>
+        /// <returns>ResponseGeneric with ResponseSuccess response object</returns>
+        public ResponseGeneric<ResponseModelTask, ResponseError> EditTask(ParamsEditTask paramsEditTask, RequestEditTask requestData)
 		{
 			var client = new RestClient(_baseAddress);
 			var request = new RestRequest($"task/{paramsEditTask.TaskId}", Method.PUT);
@@ -447,14 +447,30 @@ namespace Chinchilla.ClickUp
 			// execute the request
 			return RestSharperHelper.ExecuteRequestAsync<ResponseAuthorizedUser, ResponseError>(client, request);
 		}
-		#endregion
 
-		#region Teams
-		/// <summary>
-		/// Get the authorized teams for this token
-		/// </summary>
-		/// <returns>ResponseGeneric with ResponseAuthorizedTeams expected</returns>
-		public Task<ResponseGeneric<ResponseAuthorizedTeams, ResponseError>> GetAuthorizedTeamsAsync()
+        /// <summary>
+        /// Get Members of the List
+        /// </summary>
+        /// <param name="paramsGetTasks">params obkect of get tasks request</param>
+        /// <param name="optionalParams">OptionalParamsGetTask object</param>
+        /// <returns>ResponseGeneric with ResponseMembers response object</returns>
+        public Task<ResponseGeneric<ResponseMembers, ResponseError>> GetListMembersAsync(ParamsGetListMembers paramsGetListMembers)
+        {
+            var client = new RestClient(_baseAddress);
+            var request = new RestRequest($"list/{paramsGetListMembers.ListId}/member", Method.GET);
+            request.AddHeader("authorization", AccessToken);
+
+            // execute the request
+            return RestSharperHelper.ExecuteRequestAsync<ResponseMembers, ResponseError>(client, request);
+        }
+        #endregion
+
+        #region Teams
+        /// <summary>
+        /// Get the authorized teams for this token
+        /// </summary>
+        /// <returns>ResponseGeneric with ResponseAuthorizedTeams expected</returns>
+        public Task<ResponseGeneric<ResponseAuthorizedTeams, ResponseError>> GetAuthorizedTeamsAsync()
 		{
 			var client = new RestClient(_baseAddress);
 			var request = new RestRequest($"team", Method.GET);
@@ -690,32 +706,32 @@ namespace Chinchilla.ClickUp
 			return RestSharperHelper.ExecuteRequestAsync<ResponseModelTask, ResponseError>(client, createListRequest);
 		}
 
-        /// <summary>
-        /// Upload a file to a task as an attachment.
-        /// </summary>
-        /// <param name="paramsCreateTaskInList">param object of Create Task in List request</param>
-        /// <param name="requestData">RequestCreateTaskInList object</param>
-        /// <returns>ResponseGeneric with ModelTask object Expected</returns>
-        //public Task<ResponseGeneric<ResponseModelAttachment, ResponseError>> CreateTaskAttachment(ParamsCreateTaskAttachment paramsCreateTaskInList, FileStream fs)
-        //{
-        //    requestData.ValidateData();
+		/// <summary>
+		/// Upload a file to a task as an attachment.
+		/// </summary>
+		/// <param name="paramsCreateTaskInList">param object of Create Task in List request</param>
+		/// <param name="requestData">RequestCreateTaskInList object</param>
+		/// <returns>ResponseGeneric with ModelTask object Expected</returns>
+		public Task<ResponseGeneric<ResponseModelAttachment, ResponseError>> CreateTaskAttachmentAsync(ParamsCreateTaskAttachment paramsCreateTaskInList,
+            MemoryStream ms, string fileName)
+		{
+			byte[] data= ms.ToArray();
+			var client = new RestClient(_baseAddress);
+			var request = new RestRequest($"task/{paramsCreateTaskInList.TaskId}/attachment", Method.POST);
+			request.AddHeader("authorization", AccessToken);
+            request.AddFile("attachment", data, fileName);
 
-        //    var client = new RestClient(_baseAddress);
-        //    var request = new RestRequest($"task/{paramsCreateTaskInList.TaskId}/attachment", Method.POST);
-        //    request.AddHeader("authorization", AccessToken);
-        //    request.AddJsonBody(requestData);
+            // execute the request
+            return RestSharperHelper.ExecuteRequestAsync<ResponseModelAttachment, ResponseError>(client, request);
+		}
 
-        //    // execute the request
-        //    return RestSharperHelper.ExecuteRequestAsync<ResponseModelAttachment, ResponseError>(client, request);
-        //}
-
-        /// <summary>
-        /// Edit Task informations.
-        /// </summary>
-        /// <param name="paramsEditTask">param object of edit task request</param>
-        /// <param name="requestData">RequestEditTask object</param>
-        /// <returns>ResponseGeneric with ResponseSuccess object expected</returns>
-        public Task<ResponseGeneric<ResponseModelTask, ResponseError>> EditTaskAsync(ParamsEditTask paramsEditTask, RequestEditTask requestData)
+		/// <summary>
+		/// Edit Task informations.
+		/// </summary>
+		/// <param name="paramsEditTask">param object of edit task request</param>
+		/// <param name="requestData">RequestEditTask object</param>
+		/// <returns>ResponseGeneric with ResponseSuccess object expected</returns>
+		public Task<ResponseGeneric<ResponseModelTask, ResponseError>> EditTaskAsync(ParamsEditTask paramsEditTask, RequestEditTask requestData)
 		{
 			var client = new RestClient(_baseAddress);
 			var request = new RestRequest($"task/{paramsEditTask.TaskId}", Method.PUT);

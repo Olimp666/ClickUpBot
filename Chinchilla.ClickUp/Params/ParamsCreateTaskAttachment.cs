@@ -28,9 +28,9 @@ namespace Chinchilla.ClickUp.Params
         /// The Constructor of 'ParamsCreateTaskAttachment'
         /// </summary>
         /// <param name="taskId"></param>
-        public ParamsCreateTaskAttachment(string listId)
+        public ParamsCreateTaskAttachment(string taskId)
 		{
-            TaskId = listId;
+            TaskId = taskId;
 		}
 
 		#endregion

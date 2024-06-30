@@ -28,8 +28,7 @@ namespace Chinchilla.ClickUp.Responses.Model
 		/// Date of the Attachment
 		/// </summary>
 		[JsonProperty("date")]
-        [JsonConverter(typeof(JsonConverterDateTimeMilliseconds))]
-        public DateTime? Date { get; set; }
+        public long Date { get; set; }
 
         /// <summary>
         /// Title of the Attachment

@@ -13,6 +13,7 @@ using ClickUpBot.Models;
 using Chinchilla.ClickUp.Params;
 using Chinchilla.ClickUp.Requests;
 using Chinchilla.ClickUp.Responses.Model;
+using Telegram.Bot.Types.Enums;
 
 namespace ClickUpBot.States
 {
@@ -21,8 +22,10 @@ namespace ClickUpBot.States
         Dictionary<string, string> teams = [];
         Dictionary<string, string> spaces = [];
         Dictionary<string, string> lists = [];
+        Dictionary<string, long> members = [];
 
-        MemoryStream docStream = new MemoryStream();
+        MemoryStream docStream = new();
+        bool skipDocument = false;
         string? taskName;
         string? taskDescription;
         string? docName;
@@ -79,7 +82,6 @@ namespace ClickUpBot.States
             }
             if (step == 3)
             {
-                bool skipDocument = false;
                 if (update.Message!.Text == "Пропустить")
                 {
                     skipDocument = true;
@@ -102,7 +104,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetAuthorizedTeamsAsync();
                 foreach (var team in response.ResponseSuccess.Teams)
                 {
-                    responseMessage += $"{team.Name}\n";
+                    responseMessage += $"`{team.Name}`\n";
                     teams.Add(team.Name, team.Id);
                 }
                 string? curTeamId = currentUser.DefaultTeamId;
@@ -110,7 +112,7 @@ namespace ClickUpBot.States
                 KeyboardButton[] buttons = { isTeamIdNull ? "" : teams.First(x => x.Value == curTeamId).Key };
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
-                await bot.SendTextMessageAsync(userId, responseMessage, replyMarkup: isTeamIdNull ? new ReplyKeyboardRemove() : markup);
+                await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isTeamIdNull ? new ReplyKeyboardRemove() : markup);
 
             }
             if (step == 4)
@@ -131,7 +133,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetTeamSpacesAsync(new ParamsGetTeamSpaces(teamId));
                 foreach (var space in response.ResponseSuccess.Spaces)
                 {
-                    responseMessage += $"{space.Name}\n";
+                    responseMessage += $"`{space.Name}`\n";
                     spaces.Add(space.Name, space.Id);
                 }
                 string? curSpaceId = currentUser.DefaultSpaceId;
@@ -139,7 +141,7 @@ namespace ClickUpBot.States
                 KeyboardButton[] buttons = { isSpaceIdNull ? "" : spaces.First(x => x.Value == curSpaceId).Key };
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
-                await bot.SendTextMessageAsync(userId, responseMessage, replyMarkup: isSpaceIdNull ? new ReplyKeyboardRemove() : markup);
+                await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isSpaceIdNull ? new ReplyKeyboardRemove() : markup);
 
             }
             if (step == 5)
@@ -160,7 +162,7 @@ namespace ClickUpBot.States
                 var response = await clickUpApi.GetFolderlessListsAsync(new ParamsGetFolderlessLists(spaceId));
                 foreach (var list in response.ResponseSuccess.Lists)
                 {
-                    responseMessage += $"{list.Name}\n";
+                    responseMessage += $"`{list.Name}`\n";
                     lists.Add(list.Name, list.Id);
                 }
                 listId = currentUser.DefaultListId;
@@ -168,7 +170,7 @@ namespace ClickUpBot.States
                 KeyboardButton[] buttons = { isListIdNull ? "" : lists.First(x => x.Value == listId).Key };
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
-                await bot.SendTextMessageAsync(userId, responseMessage, replyMarkup: isListIdNull ? new ReplyKeyboardRemove() : markup);
+                await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isListIdNull ? new ReplyKeyboardRemove() : markup);
 
             }
             if (step == 6)
@@ -184,14 +186,42 @@ namespace ClickUpBot.States
                     return;
                 }
 
+                string responseMessage = "Кому назначить таску?\n";
+                var response = await clickUpApi.GetListMembersAsync(new ParamsGetListMembers(listId));
+                foreach (var member in response.ResponseSuccess.Members)
+                {
+                    responseMessage += $"`{member.Username}`\n";
+                    members.Add(member.Username, member.Id);
+                }
+                listId = currentUser.DefaultListId;
+
+                await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: new ReplyKeyboardRemove());
+            }
+            if (step == 7)
+            {
+                if (update.Message!.Text == null)
+                {
+                    await NoTextError(userId);
+                    return;
+                }
+                if (!members.ContainsKey(update.Message!.Text))
+                {
+                    await SendMessage(userId, "Пользователь не найден");
+                    return;
+                }
+
                 var response = await clickUpApi.CreateTaskInListAsync(new ParamsCreateTaskInList(listId),
-                    new RequestCreateTaskInList(taskName, taskDescription));
+                    new RequestCreateTaskInList(taskName, taskDescription, members[update.Message!.Text]));
 
                 if (response.ResponseError != null)
                 {
                     await SendMessage(userId, "Не удалось создать таску");
                     return;
                 }
+
+                string createdTaskId = response.ResponseSuccess.Id;
+                await clickUpApi.CreateTaskAttachmentAsync(new ParamsCreateTaskAttachment(createdTaskId), docStream, docName);
+
                 createdTask = response.ResponseSuccess;
                 await SendMessage(userId, createdTask.Url);
 
