@@ -10,9 +10,9 @@ using ClickUpBot.Helpers;
 using Chinchilla.ClickUp.Params;
 using Telegram.Bot.Types.Enums;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class SetProjectState : State
+    internal class SetProjectCommand : Command
     {
         Dictionary<string, string> teams = [];
         Dictionary<string, string> spaces = [];
@@ -23,7 +23,7 @@ namespace ClickUpBot.States
         string? listId;
 
         ClickUpApi clickUpApi;
-        public SetProjectState(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
+        public SetProjectCommand(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
         {
             clickUpApi = new ClickUpApi(db.GetUserToken(userId));
         }

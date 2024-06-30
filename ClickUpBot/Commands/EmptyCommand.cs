@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class EmptyState : State
+    internal class EmptyCommand : Command
     {
-        public EmptyState(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
+        public EmptyCommand(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
         {
         }
 

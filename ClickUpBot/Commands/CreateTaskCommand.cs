@@ -15,9 +15,9 @@ using Chinchilla.ClickUp.Requests;
 using Chinchilla.ClickUp.Responses.Model;
 using Telegram.Bot.Types.Enums;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class CreateTaskState : State
+    internal class CreateTaskCommand : Command
     {
         Dictionary<string, string> teams = [];
         Dictionary<string, string> spaces = [];
@@ -39,7 +39,7 @@ namespace ClickUpBot.States
 
         ClickUpApi clickUpApi;
         BotUser currentUser;
-        public CreateTaskState(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
+        public CreateTaskCommand(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
         {
             currentUser = db.GetUser(userId);
             clickUpApi = new ClickUpApi(db.GetUserToken(userId));

@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class GetForTodayState : State
+    internal class GetForTodayCommand : Command
     {
         ClickUpApi clickUpApi;
         BotUser currentUser;
-        public GetForTodayState(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
+        public GetForTodayCommand(ITelegramBotClient _bot, long _userId) : base(_bot, _userId)
         {
             currentUser = db.GetUser(userId);
             clickUpApi = new ClickUpApi(db.GetUserToken(userId));

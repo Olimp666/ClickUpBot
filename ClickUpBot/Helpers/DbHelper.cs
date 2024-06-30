@@ -85,9 +85,9 @@ namespace ClickUpBot.Helpers
             var user = ctx.Users.Find(id);
             if (user != null)
             {
-                user.DefaultTeamId= teamId;
-                user.DefaultSpaceId=spaceId;
-                user.DefaultListId=listId;
+                user.DefaultTeamId = teamId;
+                user.DefaultSpaceId = spaceId;
+                user.DefaultListId = listId;
                 ctx.SaveChanges();
             }
         }
@@ -96,6 +96,15 @@ namespace ClickUpBot.Helpers
         {
             var user = ctx.Users.Find(id);
             return user!.Token!;
+        }
+
+        public List<long> GetUsersIdsToNotify()
+        {
+            var now = DateTime.Now;
+            var nowTimeSpan = new TimeSpan(now.Hour, now.Minute, 0);
+            var userIds = ctx.Users.Where(x => x.NotifTime != null).
+                Where(x => x.NotifTime!.Value == nowTimeSpan).Select(x=>x.Id).ToList();
+            return userIds;
         }
 
     }

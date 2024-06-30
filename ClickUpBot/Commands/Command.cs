@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    abstract class State(ITelegramBotClient _bot, long _userId)
+    abstract class Command(ITelegramBotClient _bot, long _userId)
     {
         protected bool finished = false;
         protected ITelegramBotClient bot = _bot;

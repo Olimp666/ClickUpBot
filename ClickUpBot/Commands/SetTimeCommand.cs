@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 using System.Security.Principal;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class SetTimeState(ITelegramBotClient _bot, long _userId) : State(_bot, _userId)
+    internal class SetTimeCommand(ITelegramBotClient _bot, long _userId) : Command(_bot, _userId)
     {
         KeyboardButton[] buttons = { "10:00", "12:00", "16:00", "18:00" };
 
@@ -24,7 +24,7 @@ namespace ClickUpBot.States
             var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
             if (step == 0)
             {
-                await bot.SendTextMessageAsync(update.Message!.From!.Id, "Выберите дату", replyMarkup: markup);
+                await bot.SendTextMessageAsync(update.Message!.From!.Id, "В какое время напоминать о задачах?", replyMarkup: markup);
             }
             if (step == 1)
             {

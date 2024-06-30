@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 using System.Security.Principal;
 using Newtonsoft.Json.Linq;
 
-namespace ClickUpBot.States
+namespace ClickUpBot.Commands
 {
-    internal class SetTokenState(ITelegramBotClient _bot, long _userId) : State(_bot, _userId)
+    internal class SetTokenCommand(ITelegramBotClient _bot, long _userId) : Command(_bot, _userId)
     {
         public async override Task Next(Update update)
         {

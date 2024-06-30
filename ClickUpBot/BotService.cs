@@ -11,7 +11,7 @@ using Telegram.Bot.Types.Enums;
 using ClickUpBot.Models;
 using System.Threading;
 using ClickUpBot.Helpers;
-using ClickUpBot.States;
+using ClickUpBot.Commands;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 
 namespace ClickUpBot
@@ -19,7 +19,7 @@ namespace ClickUpBot
     internal class BotService
     {
         DbHelper db = DbHelper.Instance;
-        Dictionary<long, State> fsm = [];
+        Dictionary<long, Command> fsm = [];
         CancellationTokenSource cts = new();
         ITelegramBotClient botClient;
         public BotService(ITelegramBotClient _botClient)
@@ -35,6 +35,19 @@ namespace ClickUpBot
                 receiverOptions: receiverOptions,
                 cancellationToken: cts.Token
             );
+
+            var timer = new System.Timers.Timer(60000); // Check every minute
+            timer.Elapsed += async (sender, e) => await CheckAndSendNotifications();
+            timer.Start();
+        }
+
+        public async Task CheckAndSendNotifications()
+        {
+            var ids = db.GetUsersIdsToNotify();
+            foreach (var id in ids)
+            {
+                await botClient.SendTextMessageAsync(id,"Не забывайте про ваши обязанности :)");
+            }
         }
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -72,7 +85,7 @@ namespace ClickUpBot
                 if (message.Text!.StartsWith("/start"))
                 {
                     db.CreateUser(userId);
-                    fsm.Add(userId, new SetTokenState(botClient, userId));
+                    fsm.Add(userId, new SetTokenCommand(botClient, userId));
                     await fsm[userId].Next(update);
                 }
                 else
@@ -87,30 +100,30 @@ namespace ClickUpBot
             if (fsm[userId].IsFinished())
                 fsm.Remove(userId);
 
-            State ParseCommand()
+            Command ParseCommand()
             {
                 if (message.Text!.StartsWith("/token"))
                 {
-                    return new SetTokenState(botClient, userId);
+                    return new SetTokenCommand(botClient, userId);
                 }
                 if (message.Text!.StartsWith("/project"))
                 {
-                    return new SetProjectState(botClient, userId);
+                    return new SetProjectCommand(botClient, userId);
                 }
                 if (message.Text!.StartsWith("/time"))
                 {
-                    return new SetTimeState(botClient, userId);
+                    return new SetTimeCommand(botClient, userId);
                 }
                 if (message.Text!.StartsWith("/task"))
                 {
-                    return new CreateTaskState(botClient, userId);
+                    return new CreateTaskCommand(botClient, userId);
                 }
                 if (message.Text!.StartsWith("/today"))
                 {
-                    return new GetForTodayState(botClient, userId);
+                    return new GetForTodayCommand(botClient, userId);
                 }
 
-                return new EmptyState(botClient, userId);
+                return new EmptyCommand(botClient, userId);
             }
 
         }
