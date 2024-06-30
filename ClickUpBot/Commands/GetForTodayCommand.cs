@@ -26,7 +26,7 @@ namespace ClickUpBot.Commands
             var response = await clickUpApi.GetTasksAsync(new ParamsGetTasks(currentUser.DefaultTeamId));
             if (response.ResponseError != null)
             {
-                await SendMessage(userId, "Не удалось получить задачи");
+                await SendMessage(userId, "Не удалось получить задачи. Возможно, вы не установили проект по умолчанию /project");
                 finished = true;
                 return;
             }
