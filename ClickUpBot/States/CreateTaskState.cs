@@ -74,7 +74,7 @@ namespace ClickUpBot.States
                     await NoTextError(userId);
                     return;
                 }
-                KeyboardButton[] buttons = { "Пропустить" };
+                KeyboardButton[] buttons = ["Пропустить"];
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
                 taskDescription = update.Message!.Text;
                 await bot.SendTextMessageAsync(userId, "Приложите документ (опционально)", replyMarkup: markup);
@@ -99,7 +99,7 @@ namespace ClickUpBot.States
                 }
                 string? curTeamId = currentUser.DefaultTeamId;
                 bool isTeamIdNull = curTeamId == null;
-                KeyboardButton[] buttons = { isTeamIdNull ? "" : teams.First(x => x.Value == curTeamId).Key };
+                KeyboardButton[] buttons = [isTeamIdNull ? "" : teams.First(x => x.Value == curTeamId).Key];
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
                 await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isTeamIdNull ? new ReplyKeyboardRemove() : markup);
@@ -112,14 +112,14 @@ namespace ClickUpBot.States
                     await NoTextError(userId);
                     return;
                 }
-                if (!teams.ContainsKey(update.Message!.Text))
+                if (!teams.TryGetValue(update.Message!.Text, out string? value))
                 {
                     await SendMessage(userId, "Тима не найдена");
                     return;
                 }
 
                 string responseMessage = "Выберите спейс\n";
-                var teamId = teams[update.Message!.Text];
+                var teamId = value;
                 var response = await clickUpApi.GetTeamSpacesAsync(new ParamsGetTeamSpaces(teamId));
                 foreach (var space in response.ResponseSuccess.Spaces)
                 {
@@ -128,7 +128,7 @@ namespace ClickUpBot.States
                 }
                 string? curSpaceId = currentUser.DefaultSpaceId;
                 bool isSpaceIdNull = curSpaceId == null;
-                KeyboardButton[] buttons = { isSpaceIdNull ? "" : spaces.First(x => x.Value == curSpaceId).Key };
+                KeyboardButton[] buttons = [isSpaceIdNull ? "" : spaces.First(x => x.Value == curSpaceId).Key];
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
                 await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isSpaceIdNull ? new ReplyKeyboardRemove() : markup);
@@ -141,14 +141,14 @@ namespace ClickUpBot.States
                     await NoTextError(userId);
                     return;
                 }
-                if (!spaces.ContainsKey(update.Message!.Text))
+                if (!spaces.TryGetValue(update.Message!.Text, out string? value))
                 {
                     await SendMessage(userId, "Спейс не найден");
                     return;
                 }
 
                 string responseMessage = "Выберите лист\n";
-                var spaceId = spaces[update.Message!.Text];
+                var spaceId = value;
                 var response = await clickUpApi.GetFolderlessListsAsync(new ParamsGetFolderlessLists(spaceId));
                 foreach (var list in response.ResponseSuccess.Lists)
                 {
@@ -157,7 +157,7 @@ namespace ClickUpBot.States
                 }
                 listId = currentUser.DefaultListId;
                 bool isListIdNull = listId == null;
-                KeyboardButton[] buttons = { isListIdNull ? "" : lists.First(x => x.Value == listId).Key };
+                KeyboardButton[] buttons = [isListIdNull ? "" : lists.First(x => x.Value == listId).Key];
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
                 await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: isListIdNull ? new ReplyKeyboardRemove() : markup);
@@ -194,13 +194,13 @@ namespace ClickUpBot.States
                     await NoTextError(userId);
                     return;
                 }
-                if (!members.ContainsKey(update.Message!.Text))
+                if (!members.TryGetValue(update.Message!.Text, out long value))
                 {
                     await SendMessage(userId, "Пользователь не найден");
                     return;
                 }
-                assigneeId = members[update.Message!.Text];
-                KeyboardButton[] buttons = { "Сегодня", "Завтра" };
+                assigneeId = value;
+                KeyboardButton[] buttons = ["Сегодня", "Завтра"];
                 var markup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
                 await bot.SendTextMessageAsync(userId, "Введите дедлайн для задачи", replyMarkup: markup);
 
@@ -246,7 +246,7 @@ namespace ClickUpBot.States
         }
         async Task ParseAttachment(Telegram.Bot.Types.Update update)
         {
-            string fileId = "";
+            string fileId;
             switch (update.Message!.Type)
             {
                 case MessageType.Text:
