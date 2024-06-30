@@ -87,7 +87,10 @@ namespace ClickUpBot.Commands
                 }
                 if (!skipDocument)
                 {
-                    await ParseAttachment(update);
+                    if(!await ParseAttachment(update))
+                    {
+                        return;
+                    }
                 }
 
                 string responseMessage = "Выберите команду\n";
@@ -170,12 +173,13 @@ namespace ClickUpBot.Commands
                     await NoTextError(userId);
                     return;
                 }
-                if (!lists.ContainsKey(update.Message!.Text))
+                if (!lists.TryGetValue(update.Message!.Text, out string? _listId))
                 {
                     await SendMessage(userId, "Лист не найден");
                     return;
                 }
 
+                listId = _listId;
                 string responseMessage = "Кому назначить таску?\n";
                 var response = await clickUpApi.GetListMembersAsync(new ParamsGetListMembers(listId));
                 foreach (var member in response.ResponseSuccess.Members)
@@ -183,7 +187,6 @@ namespace ClickUpBot.Commands
                     responseMessage += $"`{member.Username}`\n";
                     members.Add(member.Username, member.Id);
                 }
-                listId = currentUser.DefaultListId;
 
                 await bot.SendTextMessageAsync(userId, responseMessage, parseMode: ParseMode.MarkdownV2, replyMarkup: new ReplyKeyboardRemove());
             }
@@ -236,7 +239,9 @@ namespace ClickUpBot.Commands
                 }
 
                 string createdTaskId = response.ResponseSuccess.Id;
-                await clickUpApi.CreateTaskAttachmentAsync(new ParamsCreateTaskAttachment(createdTaskId), docStream, docName);
+                if (!skipDocument)
+                    await clickUpApi.CreateTaskAttachmentAsync(new ParamsCreateTaskAttachment(createdTaskId), 
+                        docStream, docName);
 
                 createdTask = response.ResponseSuccess;
                 await bot.SendTextMessageAsync(userId, createdTask.Url, replyMarkup: new ReplyKeyboardRemove());
@@ -244,14 +249,14 @@ namespace ClickUpBot.Commands
             }
             step++;
         }
-        async Task ParseAttachment(Telegram.Bot.Types.Update update)
+        async Task<bool> ParseAttachment(Telegram.Bot.Types.Update update)
         {
             string fileId;
             switch (update.Message!.Type)
             {
                 case MessageType.Text:
                     await NoDocumentError(userId);
-                    return;
+                    return false;
                 case MessageType.Photo:
                     fileId = update.Message!.Photo!.Last().FileId;
                     docName = $"attachment_{update.Message!.Photo!.Last().FileUniqueId}.jpg";
@@ -273,10 +278,11 @@ namespace ClickUpBot.Commands
                     docName = update.Message!.Document!.FileName;
                     break;
                 default:
-                    return;
+                    return true;
             }
 
             await bot.GetInfoAndDownloadFileAsync(fileId, docStream);
+            return true;
         }
     }
 }
