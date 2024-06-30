@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickUpBot", "ClickUpBot\ClickUpBot.csproj", "{A752D88C-9290-4EDD-83A7-106B133A9CA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickUpBot", "ClickUpBot\ClickUpBot.csproj", "{A752D88C-9290-4EDD-83A7-106B133A9CA8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chinchilla.ClickUp", "Chinchilla.ClickUp\Chinchilla.ClickUp.csproj", "{12575ACD-BF08-4AA4-A46B-5966F9B48DD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A752D88C-9290-4EDD-83A7-106B133A9CA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A752D88C-9290-4EDD-83A7-106B133A9CA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A752D88C-9290-4EDD-83A7-106B133A9CA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12575ACD-BF08-4AA4-A46B-5966F9B48DD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12575ACD-BF08-4AA4-A46B-5966F9B48DD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12575ACD-BF08-4AA4-A46B-5966F9B48DD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12575ACD-BF08-4AA4-A46B-5966F9B48DD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
