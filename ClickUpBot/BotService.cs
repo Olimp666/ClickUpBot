@@ -105,6 +105,10 @@ namespace ClickUpBot
                 {
                     return new CreateTaskState(botClient, userId);
                 }
+                if (message.Text!.StartsWith("/today"))
+                {
+                    return new GetForTodayState(botClient, userId);
+                }
 
                 return new EmptyState(botClient, userId);
             }
